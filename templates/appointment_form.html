@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Modifica appuntamento</h1>
+
+<section class="panel">
+    <form method="post" action="{{ url_for('edit_appointment', appointment_id=appointment.id) }}" class="form-grid">
+        <div>
+            <label>Utente</label>
+            <select name="patient_id" required>
+                {% for patient in patients %}
+                <option value="{{ patient.id }}" {% if patient.id == appointment.patient_id %}selected{% endif %}>{{ patient.first_name }} {{ patient.last_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label>Operatore</label>
+            <input type="text" name="operator_name" value="{{ appointment.operator_name }}" required>
+        </div>
+        <div>
+            <label>Data</label>
+            <input type="date" name="appointment_date" value="{{ appointment.appointment_date }}" required>
+        </div>
+        <div>
+            <label>Ora</label>
+            <input type="time" name="appointment_time" value="{{ appointment.appointment_time }}" required>
+        </div>
+        <div>
+            <label>Tipo</label>
+            <input type="text" name="appointment_type" value="{{ appointment.appointment_type }}" required>
+        </div>
+        <div>
+            <label>Stato</label>
+            <select name="status">
+                <option value="prenotato" {% if appointment.status == 'prenotato' %}selected{% endif %}>Prenotato</option>
+                <option value="confermato" {% if appointment.status == 'confermato' %}selected{% endif %}>Confermato</option>
+                <option value="in corso" {% if appointment.status == 'in corso' %}selected{% endif %}>In corso</option>
+                <option value="completato" {% if appointment.status == 'completato' %}selected{% endif %}>Completato</option>
+                <option value="annullato" {% if appointment.status == 'annullato' %}selected{% endif %}>Annullato</option>
+            </select>
+        </div>
+        <div class="full-width">
+            <label>Note</label>
+            <textarea name="notes" rows="4">{{ appointment.notes or '' }}</textarea>
+        </div>
+        <div class="full-width actions-row">
+            <button type="submit">Salva modifiche</button>
+            <a class="secondary-btn" href="{{ url_for('appointments') }}">Annulla</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

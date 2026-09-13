@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Promemoria e notifiche</h1>
+
+<section class="panel">
+    <h2>Log promemoria</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Utente</th>
+                <th>Appuntamento</th>
+                <th>Data</th>
+                <th>Ora</th>
+                <th>Promemoria</th>
+                <th>Invio</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for reminder in reminders %}
+            <tr>
+                <td>{{ reminder.patient_name }}</td>
+                <td>{{ reminder.appointment_type }}</td>
+                <td>{{ reminder.appointment_date|it_date }}</td>
+                <td>{{ reminder.appointment_time }}</td>
+                <td>{{ reminder.reminder_days }} giorni</td>
+                <td>{{ reminder.sent_at|it_date }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6">Nessun promemoria inviato.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

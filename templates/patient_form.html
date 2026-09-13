@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Modifica utente</h1>
+
+<section class="panel">
+    <form method="post" action="{{ url_for('edit_patient', patient_id=patient.id) }}" class="form-grid">
+        <div>
+            <label>Nome</label>
+            <input type="text" name="first_name" value="{{ patient.first_name }}" required>
+        </div>
+        <div>
+            <label>Cognome</label>
+            <input type="text" name="last_name" value="{{ patient.last_name }}" required>
+        </div>
+        <div>
+            <label>Data nascita</label>
+            <input type="date" name="birth_date" value="{{ patient.birth_date }}">
+        </div>
+        <div>
+            <label>Codice fiscale</label>
+            <input type="text" name="cf" value="{{ patient.cf }}">
+        </div>
+        <div>
+            <label>Telefono</label>
+            <input type="text" name="phone" value="{{ patient.phone }}">
+        </div>
+        <div>
+            <label>Email</label>
+            <input type="email" name="email" value="{{ patient.email }}">
+        </div>
+        <div>
+            <label>Codice identificativo</label>
+            <input type="text" name="identifier_code" value="{{ patient.identifier_code or '' }}" placeholder="es. 01/26">
+        </div>
+        <div>
+            <label>Diagnosi</label>
+            <input type="text" name="diagnosis" value="{{ patient.diagnosis or '' }}">
+        </div>
+        <div>
+            <label>ADS</label>
+            <input type="text" name="ads" value="{{ patient.ads or '' }}" placeholder="Opzionale">
+        </div>
+        <div>
+            <label>Familiari</label>
+            <input type="text" name="family_members" value="{{ patient.family_members or '' }}" placeholder="Opzionale">
+        </div>
+        <div>
+            <label>Esenzione</label>
+            <input type="text" name="exemption" value="{{ patient.exemption or '' }}" placeholder="Opzionale">
+        </div>
+        <div>
+            <label>MMG</label>
+            <input type="text" name="mmg" value="{{ patient.mmg or '' }}">
+        </div>
+        <div>
+            <label>Provenienza</label>
+            <select name="arrival_from">
+                <option value="" {% if not patient.arrival_from %}selected{% endif %}>Seleziona</option>
+                <option value="Casa" {% if patient.arrival_from == 'Casa' %}selected{% endif %}>Casa</option>
+                <option value="SPDC" {% if patient.arrival_from == 'SPDC' %}selected{% endif %}>SPDC</option>
+                <option value="Altro" {% if patient.arrival_from == 'Altro' %}selected{% endif %}>Altro</option>
+            </select>
+        </div>
+        <div>
+            <label>Dettaglio provenienza</label>
+            <input type="text" name="arrival_from_other" value="{{ patient.arrival_from_other or '' }}" placeholder="Se altro, specificare">
+        </div>
+        <div class="full-width">
+            <label>Indirizzo</label>
+            <input type="text" name="address" value="{{ patient.address }}">
+        </div>
+        <div class="full-width">
+            <label>Note</label>
+            <textarea name="notes" rows="4">{{ patient.notes or '' }}</textarea>
+        </div>
+        <div class="full-width actions-row">
+            <button type="submit">Salva modifiche</button>
+            <a class="secondary-btn" href="{{ url_for('patients') }}">Annulla</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

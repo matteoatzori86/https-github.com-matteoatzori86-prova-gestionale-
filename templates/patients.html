@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Utenti</h1>
+
+<div style="margin-bottom:16px;">
+    <button id="toggle-new-patient" class="primary-btn">Aggiungi nuovo utente</button>
+</div>
+
+<section class="panel" id="new-patient-section" style="display:none;">
+    <h2>Nuovo utente</h2>
+    <form method="post" action="{{ url_for('patients') }}" class="form-grid">
+        <div>
+            <label>Nome</label>
+            <input type="text" name="first_name" required>
+        </div>
+        <div>
+            <label>Cognome</label>
+            <input type="text" name="last_name" required>
+        </div>
+        <div>
+            <label>Data nascita</label>
+            <input type="date" name="birth_date">
+        </div>
+        <div>
+            <label>Codice fiscale</label>
+            <input type="text" name="cf">
+        </div>
+        <div>
+            <label>Telefono</label>
+            <input type="text" name="phone">
+        </div>
+        <div>
+            <label>Email</label>
+            <input type="email" name="email">
+        </div>
+        <div>
+            <label>Codice identificativo</label>
+            <input type="text" name="identifier_code" placeholder="es. 01/26">
+        </div>
+        <div>
+            <label>Diagnosi</label>
+            <input type="text" name="diagnosis">
+        </div>
+        <div>
+            <label>ADS</label>
+            <input type="text" name="ads" placeholder="Opzionale">
+        </div>
+        <div>
+            <label>Familiari</label>
+            <input type="text" name="family_members" placeholder="Opzionale">
+        </div>
+        <div>
+            <label>Esenzione</label>
+            <input type="text" name="exemption" placeholder="Opzionale">
+        </div>
+        <div>
+            <label>MMG</label>
+            <input type="text" name="mmg" placeholder="Medico di medicina generale">
+        </div>
+        <div>
+            <label>Provenienza</label>
+            <select name="arrival_from">
+                <option value="">Seleziona</option>
+                <option value="Casa">Casa</option>
+                <option value="SPDC">SPDC</option>
+                <option value="Altro">Altro</option>
+            </select>
+        </div>
+        <div>
+            <label>Dettaglio provenienza</label>
+            <input type="text" name="arrival_from_other" placeholder="Se altro, specificare">
+        </div>
+        <div class="full-width">
+            <label>Indirizzo</label>
+            <input type="text" name="address">
+        </div>
+        <div class="full-width">
+            <label>Note</label>
+            <textarea name="notes" rows="3"></textarea>
+        </div>
+        <div class="full-width">
+            <button type="submit">Salva utente</button>
+        </div>
+    </form>
+</section>
+
+<section class="panel">
+    <h2>Elenco utenti</h2>
+    <form method="get" class="filter-row" style="margin-bottom: 18px;">
+        <label>
+            Cerca utente
+            <input type="text" name="q" value="{{ search_query or '' }}" placeholder="Nome, cognome, codice, CF">
+        </label>
+        <button type="submit">Cerca</button>
+        <a class="link-btn" href="{{ url_for('patients') }}">Reset</a>
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Cognome</th>
+                <th>Data nascita</th>
+                <th>Codice utente</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for patient in patients %}
+            <tr>
+                <td>{{ patient.first_name }}</td>
+                <td>{{ patient.last_name }}</td>
+                <td>{{ patient.birth_date|it_date or '-' }}</td>
+                <td>{{ patient.identifier_code or '-' }}</td>
+                <td class="actions">
+                    {% if user_has_permission('open_user_folder') %}
+                    <form method="post" action="{{ url_for('open_patient_folder', patient_id=patient.id) }}" style="display:inline;">
+                        <button type="submit" class="secondary-btn">Apri cartella</button>
+                    </form>
+                    {% endif %}
+                    <a class="link-btn" href="{{ url_for('patient_detail', patient_id=patient.id) }}">Dettaglio</a>
+                    <a class="link-btn" href="{{ url_for('edit_patient', patient_id=patient.id) }}">Modifica</a>
+                    <form method="post" action="{{ url_for('archive_patient', patient_id=patient.id) }}" style="display:inline;">
+                        <button class="secondary-btn" type="submit" onclick="return confirm('Archiviare l\'utente?')">Archivia</button>
+                    </form>
+                    <form method="post" action="{{ url_for('delete_patient', patient_id=patient.id) }}">
+                        <button class="danger" type="submit" onclick="return confirm('Eliminare l\'utente?')">Elimina</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5">Nessun utente presente.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+{% if archived_patients %}
+<section class="panel">
+    <h2>Utenti dimessi</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Cognome</th>
+                <th>Data nascita</th>
+                <th>Codice utente</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for patient in archived_patients %}
+            <tr>
+                <td>{{ patient.first_name }}</td>
+                <td>{{ patient.last_name }}</td>
+                <td>{{ patient.birth_date|it_date or '-' }}</td>
+                <td>{{ patient.identifier_code or '-' }}</td>
+                <td>
+                    <form method="post" action="{{ url_for('restore_patient', patient_id=patient.id) }}">
+                        <button type="submit" class="secondary-btn">Ripristina</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endif %}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    var btn = document.getElementById('toggle-new-patient');
+    var panel = document.getElementById('new-patient-section');
+    if(!btn || !panel) return;
+
+    // restore visibility from sessionStorage
+    try{
+        var visible = sessionStorage.getItem('newPatientVisible');
+        if(visible === '1'){
+            panel.style.display = '';
+            btn.textContent = 'Nascondi nuovo utente';
+        } else {
+            panel.style.display = 'none';
+            btn.textContent = 'Aggiungi nuovo utente';
+        }
+    }catch(e){
+        // fallback: keep panel hidden
+        panel.style.display = 'none';
+        btn.textContent = 'Aggiungi nuovo utente';
+    }
+
+    btn.addEventListener('click', function(e){
+        e.preventDefault();
+        var current = window.getComputedStyle(panel).display;
+        if(current === 'none'){
+            panel.style.display = '';
+            try{ sessionStorage.setItem('newPatientVisible','1'); }catch(e){}
+            btn.textContent = 'Nascondi nuovo utente';
+        } else {
+            panel.style.display = 'none';
+            try{ sessionStorage.setItem('newPatientVisible','0'); }catch(e){}
+            btn.textContent = 'Aggiungi nuovo utente';
+        }
+    });
+});
+</script>
+
+{% endblock %}

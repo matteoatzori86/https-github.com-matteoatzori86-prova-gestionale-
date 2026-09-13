@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Calendario appuntamenti</h1>
+
+<section class="panel">
+    <form method="get" action="{{ url_for('calendar') }}" class="calendar-form">
+        <label>Seleziona data</label>
+        <input type="date" name="date" value="{{ selected_date.isoformat() }}">
+        <button type="submit">Vai</button>
+    </form>
+
+    <div class="week-grid">
+        {% for day in week_dates %}
+        <div class="day-column {% if day.isoformat() == selected_date.isoformat() %}selected-day{% endif %}">
+            <h3>{{ day.strftime('%a') }}<br><span>{{ day.day }}</span></h3>
+            {% set items = appointments_by_date.get(day.isoformat(), []) %}
+            {% if items %}
+                {% for item in items %}
+                <div class="appointment-pill">
+                    <strong>{{ item.appointment_time }}</strong><br>
+                    {{ item.patient_name }}<br>
+                    <span>{{ item.appointment_type }}</span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-day">Nessun appuntamento</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

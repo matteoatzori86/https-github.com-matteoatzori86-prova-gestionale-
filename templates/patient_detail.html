@@ -1,0 +1,366 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <p class="eyebrow">Scheda utente</p>
+        <h1>{{ patient.first_name }} {{ patient.last_name }}</h1>
+    </div>
+    <div class="actions-row">
+        <a class="secondary-btn" href="{{ url_for('edit_patient', patient_id=patient.id) }}">Modifica scheda</a>
+        <a class="secondary-btn" href="{{ url_for('patients') }}">Torna elenco</a>
+    </div>
+</div>
+
+<section class="panel">
+    <h2>Dati anagrafici</h2>
+    <div class="details-grid">
+        <div><strong>Data di nascita:</strong> {{ patient.birth_date|it_date or '-' }}</div>
+        <div><strong>Codice fiscale:</strong> {{ patient.cf or '-' }}</div>
+        <div><strong>Codice identificativo:</strong> {{ patient.identifier_code or '-' }}</div>
+        <div><strong>Diagnosi:</strong> {{ patient.diagnosis or '-' }}</div>
+        <div><strong>ADS:</strong> {{ patient.ads or '-' }}</div>
+        <div><strong>Familiari:</strong> {{ patient.family_members or '-' }}</div>
+        <div><strong>Esenzione:</strong> {{ patient.exemption or '-' }}</div>
+        <div><strong>MMG:</strong> {{ patient.mmg or '-' }}</div>
+        <div><strong>Provenienza:</strong> {{ patient.arrival_from or '-' }}</div>
+        <div><strong>Dettaglio provenienza:</strong> {{ patient.arrival_from_other or '-' }}</div>
+        <div><strong>Telefono:</strong> {{ patient.phone or '-' }}</div>
+        <div><strong>Email:</strong> {{ patient.email or '-' }}</div>
+        <div class="full-width"><strong>Indirizzo:</strong> {{ patient.address or '-' }}</div>
+        <div class="full-width"><strong>Note:</strong> {{ patient.notes or '-' }}</div>
+    </div>
+</section>
+
+{% macro render_folder_tree(folder, depth=0) %}
+<div class="folder-node" style="margin-left: {{ depth * 16 }}px;">
+    <details class="folder-accordion" {% if depth == 0 %}open{% endif %}>
+        <summary class="folder-summary">
+            <span class="folder-summary-main">
+                <span class="folder-label">{{ folder.label }}</span>
+                {% if folder.relative_path %}
+                <span class="folder-path">{{ folder.relative_path }}</span>
+                {% endif %}
+            </span>
+            <span class="folder-summary-meta">
+                <span class="folder-count">{{ folder.files|length if folder.files else 0 }} PDF</span>
+            </span>
+        </summary>
+
+        <div class="folder-panel">
+            <div class="folder-upload-strip">
+                <form method="post" action="{{ url_for('upload_patient_folder_pdf', patient_id=patient.id) }}" enctype="multipart/form-data" class="folder-upload-form">
+                    <input type="hidden" name="folder_path" value="{{ folder.relative_path }}">
+                    <label class="file-drop">
+                        <input type="file" name="file" accept=".pdf,application/pdf" required>
+                        <span class="file-drop-text">Scegli PDF</span>
+                    </label>
+                    <button type="submit" class="secondary-btn small">Aggiungi PDF</button>
+                </form>
+            </div>
+
+            {% if folder.files %}
+            <ul class="folder-files">
+                {% for pdf in folder.files %}
+                <li>
+                    <a href="{{ url_for('download_patient_folder_pdf', patient_id=patient.id, file_path=pdf.relative_path) }}" target="_blank" rel="noopener">
+                        <span class="file-icon">PDF</span>
+                        <span>{{ pdf.name }}</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="folder-empty">Nessun PDF in questa sezione.</p>
+            {% endif %}
+
+            {% if folder.children %}
+                {% for child in folder.children %}
+                    {{ render_folder_tree(child, depth + 1) }}
+                {% endfor %}
+            {% endif %}
+        </div>
+    </details>
+</div>
+{% endmacro %}
+
+<section class="panel">
+    <h2>Cartella utente</h2>
+    <p class="section-subtitle">Qui sono esposte le cartelle infermieristica e sociosanitaria come sezioni cliccabili. Aprendo ogni cartella si mostrano le sottocartelle e i PDF caricati.</p>
+    <div class="folder-tree-wrap">
+        {{ render_folder_tree(folder_tree) }}
+    </div>
+</section>
+
+<section class="panel">
+    <h2>Documenti allegati</h2>
+    {% if documents %}
+    <table>
+        <thead>
+            <tr>
+                <th>Nome file</th>
+                <th>Caricato il</th>
+                <th>Dimensione</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for document in documents %}
+            <tr>
+                <td>{{ document.original_name }}</td>
+                <td>{{ document.uploaded_at|it_date }}</td>
+                <td>{{ (document.file_size / 1024) | round(1) }} KB</td>
+                <td class="table-actions">
+                    <a class="secondary-btn small" href="{{ url_for('download_patient_document', document_id=document.id) }}" target="_blank" rel="noopener">Scarica</a>
+                    {% if user_has_permission('delete_patients') %}
+                    <form method="post" action="{{ url_for('delete_patient_document', document_id=document.id) }}">
+                        <button type="submit" class="danger small">Elimina</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Nessun documento allegato.</p>
+    {% endif %}
+
+    {% if user_has_permission('edit_patients') %}
+    <form method="post" action="{{ url_for('upload_patient_document', patient_id=patient.id) }}" class="form-grid" enctype="multipart/form-data" style="margin-top: 18px;">
+        <div class="full-width">
+            <label>Carica PDF</label>
+            <input type="file" name="file" accept="application/pdf" required>
+        </div>
+        <div class="full-width">
+            <button type="submit">Carica documento</button>
+        </div>
+    </form>
+    {% endif %}
+</section>
+
+<section class="panel">
+    <h2>Storico appuntamenti</h2>
+    {% if appointments %}
+    <table>
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Ora</th>
+                <th>Tipo</th>
+                <th>Operatore</th>
+                <th>Stato</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appointment in appointments %}
+            <tr>
+                <td>{{ appointment.appointment_date }}</td>
+                <td>{{ appointment.appointment_time }}</td>
+                <td>{{ appointment.appointment_type }}</td>
+                <td>{{ appointment.operator_name }}</td>
+                <td>{{ appointment.status }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Nessun appuntamento registrato.</p>
+    {% endif %}
+</section>
+
+<div style="margin-bottom:16px;">
+    <button id="toggle-new-visit" class="primary-btn">Aggiungi nuova visita</button>
+</div>
+
+<section class="panel" id="new-visit-section" style="display:none;">
+    <h2>Nuova visita</h2>
+    <form method="post" action="{{ url_for('add_visit', patient_id=patient.id) }}" class="form-grid">
+        <div>
+            <label>Data visita</label>
+            <input type="date" name="visit_date" required>
+        </div>
+        <div>
+            <label>Tipo visita</label>
+            <input type="text" name="visit_type" placeholder="Controllo / valutazione / terapia" required>
+        </div>
+        <div>
+            <label>Medico / operatore</label>
+            <input type="text" name="doctor_name">
+        </div>
+        <div>
+            <label>Appuntamento collegato</label>
+            <select name="appointment_id">
+                <option value="">Nessuno</option>
+                {% for appointment in appointments %}
+                <option value="{{ appointment.id }}">{{ appointment.appointment_date }} - {{ appointment.appointment_type }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="full-width">
+            <label>Riassunto</label>
+            <input type="text" name="summary">
+        </div>
+        <div class="full-width">
+            <label>Note</label>
+            <textarea name="notes" rows="3"></textarea>
+        </div>
+        <div class="full-width">
+            <label>Esito</label>
+            <textarea name="outcome" rows="3"></textarea>
+        </div>
+        <div class="full-width">
+            <label>Follow-up</label>
+            <textarea name="follow_up" rows="3"></textarea>
+        </div>
+        <div class="full-width">
+            <button type="submit">Salva visita</button>
+        </div>
+    </form>
+</section>
+
+<section class="panel">
+    <h2>Terapie in atto</h2>
+    {% if therapies %}
+    <table>
+        <thead>
+            <tr>
+                <th>Farmaco</th>
+                <th>Principio attivo</th>
+                <th>Dosaggio per assunzione</th>
+                <th>Orari terapia</th>
+                <th>Giacenza</th>
+                <th>Durata stimata</th>
+                <th>Note</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for therapy in therapies %}
+            {% set therapy_stock = therapy_stock_summary(therapy) %}
+            <tr>
+                <td>{{ therapy.drug_name }}</td>
+                <td>{{ therapy.active_ingredient or '-' }}</td>
+                <td>{{ therapy.dosage or '-' }}</td>
+                <td>{{ therapy.schedule or '-' }}</td>
+                <td>{{ therapy_stock.stock_label }}</td>
+                <td>{{ therapy_stock.duration_label }}</td>
+                <td>{{ therapy.notes or '-' }}</td>
+                <td class="actions">
+                    <a class="secondary-btn" href="{{ url_for('edit_therapy', therapy_id=therapy.id) }}">Modifica</a>
+                    <form method="post" action="{{ url_for('delete_therapy', therapy_id=therapy.id) }}" style="display:inline;">
+                        <button type="submit" class="danger small" onclick="return confirm('Eliminare questa terapia?')">Elimina</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Nessuna terapia inserita.</p>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('add_therapy', patient_id=patient.id) }}" class="form-grid" style="margin-top: 18px;">
+        <div>
+            <label>Farmaco</label>
+            <input type="text" name="drug_name" required>
+        </div>
+        <div>
+            <label>Principio attivo</label>
+            <input type="text" name="active_ingredient" placeholder="es. Paracetamolo">
+        </div>
+        <div>
+            <label>Dosaggio per assunzione</label>
+            <input type="text" name="dosage" placeholder="es. 1 cp al giorno o 1 bustina">
+        </div>
+        <div>
+            <label>Orari terapia</label>
+            <input type="text" name="schedule" placeholder="es. 08:00,12:00,20:00">
+        </div>
+        <div>
+            <label>Tipo confezione</label>
+            <select name="pack_type">
+                <option value="cp">Compresse / capsule</option>
+                <option value="gocce">Gocce</option>
+                <option value="fiale">Fiale</option>
+                <option value="bustine">Bustine</option>
+            </select>
+        </div>
+        <div>
+            <label>Unità per scatola</label>
+            <input type="number" min="0" name="units_per_box" value="30">
+        </div>
+        <div>
+            <label>Numero scatole</label>
+            <input type="number" min="0" name="stock_boxes" value="1">
+        </div>
+        <div>
+            <label>Scadenza scatola</label>
+            <input type="date" name="expiry_date">
+        </div>
+        <div class="full-width">
+            <label>Note</label>
+            <textarea name="notes" rows="2"></textarea>
+        </div>
+        <div class="full-width">
+            <button type="submit">Aggiungi terapia</button>
+        </div>
+    </form>
+</section>
+
+<section class="panel">
+    <h2>Storico visite</h2>
+    {% if visits %}
+    <div class="visit-list">
+        {% for visit in visits %}
+        <article class="visit-item">
+            <h3>{{ visit.visit_date }} - {{ visit.visit_type }}</h3>
+            {% if visit.doctor_name %}<p><strong>Operatore:</strong> {{ visit.doctor_name }}</p>{% endif %}
+            {% if visit.summary %}<p><strong>Riassunto:</strong> {{ visit.summary }}</p>{% endif %}
+            {% if visit.notes %}<p><strong>Note:</strong> {{ visit.notes }}</p>{% endif %}
+            {% if visit.outcome %}<p><strong>Esito:</strong> {{ visit.outcome }}</p>{% endif %}
+            {% if visit.follow_up %}<p><strong>Follow-up:</strong> {{ visit.follow_up }}</p>{% endif %}
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>Nessuna visita registrata.</p>
+    {% endif %}
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    var btn = document.getElementById('toggle-new-visit');
+    var panel = document.getElementById('new-visit-section');
+    if(!btn || !panel) return;
+
+    try{
+        var visible = sessionStorage.getItem('newVisitVisible');
+        if(visible === '1'){
+            panel.style.display = '';
+            btn.textContent = 'Nascondi nuova visita';
+        } else {
+            panel.style.display = 'none';
+            btn.textContent = 'Aggiungi nuova visita';
+        }
+    }catch(e){
+        panel.style.display = 'none';
+        btn.textContent = 'Aggiungi nuova visita';
+    }
+
+    btn.addEventListener('click', function(e){
+        e.preventDefault();
+        var current = window.getComputedStyle(panel).display;
+        if(current === 'none'){
+            panel.style.display = '';
+            try{ sessionStorage.setItem('newVisitVisible','1'); }catch(e){}
+            btn.textContent = 'Nascondi nuova visita';
+        } else {
+            panel.style.display = 'none';
+            try{ sessionStorage.setItem('newVisitVisible','0'); }catch(e){}
+            btn.textContent = 'Aggiungi nuova visita';
+        }
+    });
+});
+</script>
+{% endblock %}

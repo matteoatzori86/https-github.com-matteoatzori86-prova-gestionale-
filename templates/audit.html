@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <p class="eyebrow">Audit sicurezza</p>
+        <h1>Accessi ultimi 30 giorni</h1>
+    </div>
+    <div class="actions-row">
+        <a class="secondary-btn" href="{{ url_for('export_audit_csv') }}">Esporta CSV</a>
+    </div>
+</div>
+
+<section class="panel">
+    <h2>Filtri</h2>
+    <form method="get" class="audit-filters">
+        <div class="filter-row">
+            <label>
+                Operatore
+                <select name="user_id">
+                    <option value="">Tutti</option>
+                    {% for user in users %}
+                    <option value="{{ user.id }}" {% if selected_user_id == user.id|string %}selected{% endif %}>{{ user.fullname }} ({{ user.username }})</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>
+                Evento
+                <select name="action">
+                    <option value="">Tutti</option>
+                    {% for action_name in actions %}
+                    <option value="{{ action_name }}" {% if selected_action == action_name %}selected{% endif %}>{{ action_name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>
+                Dal
+                <input type="date" name="date_from" value="{{ date_from }}">
+            </label>
+
+            <label>
+                Al
+                <input type="date" name="date_to" value="{{ date_to }}">
+            </label>
+
+            <button type="submit">Applica</button>
+            <a href="/audit" class="secondary-btn">Reset</a>
+        </div>
+    </form>
+</section>
+
+<section class="panel">
+    <h2>Log attività</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Data / ora</th>
+                <th>Operatore</th>
+                <th>Ruolo</th>
+                <th>Evento</th>
+                <th>Dettaglio</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+            <tr>
+                <td>{{ entry.created_at }}</td>
+                <td>{{ entry.fullname }} ({{ entry.username }})</td>
+                <td>{{ ROLE_LABELS.get(entry.role, entry.role) }}</td>
+                <td>{{ entry.action }}</td>
+                <td>{{ entry.details or '-' }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5">Nessuna attività registrata con i filtri selezionati.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

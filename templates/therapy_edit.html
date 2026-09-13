@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Modifica terapia</h1>
+<section class="panel">
+    <form method="post" action="{{ url_for('edit_therapy', therapy_id=therapy.id) }}" class="form-grid">
+        <div>
+            <label>Farmaco</label>
+            <input type="text" name="drug_name" value="{{ therapy.drug_name }}" required>
+        </div>
+        <div>
+            <label>Principio attivo</label>
+            <input type="text" name="active_ingredient" value="{{ therapy.active_ingredient or '' }}">
+        </div>
+        <div>
+            <label>Dosaggio per assunzione</label>
+            <input type="text" name="dosage" value="{{ therapy.dosage or '' }}" placeholder="es. 1 cp">
+        </div>
+        <div>
+            <label>Orari terapia</label>
+            <input type="text" name="schedule" value="{{ therapy.schedule or '' }}" placeholder="es. 08:00,12:00,20:00">
+        </div>
+        <div>
+            <label>Tipo confezione</label>
+            <select name="pack_type">
+                <option value="cp" {% if therapy.pack_type == 'cp' %}selected{% endif %}>Compresse / capsule</option>
+                <option value="gocce" {% if therapy.pack_type == 'gocce' %}selected{% endif %}>Gocce</option>
+                <option value="fiale" {% if therapy.pack_type == 'fiale' %}selected{% endif %}>Fiale</option>
+                <option value="bustine" {% if therapy.pack_type == 'bustine' %}selected{% endif %}>Bustine</option>
+            </select>
+        </div>
+        <div>
+            <label>Unità per scatola</label>
+            <input type="number" min="0" name="units_per_box" value="{{ therapy.units_per_box or 0 }}">
+        </div>
+        <div>
+            <label>Numero scatole</label>
+            <input type="number" min="0" name="stock_boxes" value="{{ therapy.stock_boxes or 0 }}">
+        </div>
+        <div>
+            <label>Scadenza scatola</label>
+            <input type="date" name="expiry_date" value="{{ therapy.expiry_date or '' }}">
+        </div>
+        <div class="full-width">
+            <label>Note</label>
+            <textarea name="notes" rows="3">{{ therapy.notes }}</textarea>
+        </div>
+        <div class="full-width">
+            <button type="submit">Salva modifiche</button>
+            <a class="secondary-btn" href="{{ url_for('patient_detail', patient_id=therapy.patient_id) }}">Annulla</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

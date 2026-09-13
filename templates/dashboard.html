@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <p class="eyebrow">Panoramica</p>
+        <h1>Dashboard</h1>
+    </div>
+</div>
+<div class="cards-grid">
+    <div class="card accent-blue">
+        <span class="label">Utenti</span>
+        <strong>{{ patient_count }}</strong>
+        <small>totali in archivio</small>
+    </div>
+    <div class="card accent-green">
+        <span class="label">Appuntamenti</span>
+        <strong>{{ appointment_count }}</strong>
+        <small>registrati</small>
+    </div>
+    <div class="card accent-cyan">
+        <span class="label">Operatori attivi</span>
+        <strong>{{ users_count }}</strong>
+        <small>persone abilitate</small>
+    </div>
+    <div class="card accent-violet">
+        <span class="label">Documenti</span>
+        <strong>{{ documents_count }}</strong>
+        <small>allegati PDF</small>
+    </div>
+    <div class="card accent-orange">
+        <span class="label">In agenda</span>
+        <strong>{{ upcoming_count }}</strong>
+        <small>da oggi in poi</small>
+    </div>
+</div>
+
+<section class="panel">
+    <h2>Prossimi appuntamenti</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Utente</th>
+                <th>Data</th>
+                <th>Ora</th>
+                <th>Tipo</th>
+                <th>Stato</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in next_appointments %}
+            <tr>
+                <td>{{ item.patient_name }}</td>
+                <td>{{ item.appointment_date|it_date }}</td>
+                <td>{{ item.appointment_time }}</td>
+                <td>{{ item.appointment_type }}</td>
+                <td>{{ item.status }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5">Nessun appuntamento in agenda.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<section class="panel">
+    <h2>Promemoria recenti</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Utente</th>
+                <th>Messaggio</th>
+                <th>Data invio</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for reminder in recent_reminders %}
+            <tr>
+                <td>{{ reminder.patient_name }}</td>
+                <td>{{ reminder.message }}</td>
+                <td>{{ reminder.sent_at|it_date }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3">Nessun promemoria ancora generato.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

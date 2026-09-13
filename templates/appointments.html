@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Appuntamenti</h1>
+
+<section class="panel">
+    <h2>Nuovo appuntamento</h2>
+    <form method="post" action="{{ url_for('appointments') }}" class="form-grid">
+        <div>
+            <label>Utente</label>
+            <select name="patient_id" required>
+                <option value="">Seleziona utente</option>
+                {% for patient in patients %}
+                <option value="{{ patient.id }}">{{ patient.first_name }} {{ patient.last_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label>Operatore</label>
+            <input type="text" name="operator_name" placeholder="Es. Dr. Rossi" required>
+        </div>
+        <div>
+            <label>Data</label>
+            <input type="date" name="appointment_date" required>
+        </div>
+        <div>
+            <label>Ora</label>
+            <input type="time" name="appointment_time" required>
+        </div>
+        <div>
+            <label>Tipo</label>
+            <input type="text" name="appointment_type" placeholder="Visita / controllo / terapia" required>
+        </div>
+        <div>
+            <label>Stato</label>
+            <select name="status">
+                <option value="prenotato">Prenotato</option>
+                <option value="confermato">Confermato</option>
+                <option value="in corso">In corso</option>
+                <option value="completato">Completato</option>
+                <option value="annullato">Annullato</option>
+            </select>
+        </div>
+        <div class="full-width">
+            <label>Note</label>
+            <textarea name="notes" rows="3"></textarea>
+        </div>
+        <div class="full-width">
+            <button type="submit">Salva appuntamento</button>
+        </div>
+    </form>
+</section>
+
+<section class="panel">
+    <h2>Agenda</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Utente</th>
+                <th>Operatore</th>
+                <th>Data</th>
+                <th>Ora</th>
+                <th>Tipo</th>
+                <th>Stato</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appointment in appointments %}
+            <tr>
+                <td>{{ appointment.patient_name }}</td>
+                <td>{{ appointment.operator_name }}</td>
+                <td>{{ appointment.appointment_date|it_date }}</td>
+                <td>{{ appointment.appointment_time }}</td>
+                <td>{{ appointment.appointment_type }}</td>
+                <td>{{ appointment.status }}</td>
+                <td class="actions">
+                    <a class="link-btn" href="{{ url_for('edit_appointment', appointment_id=appointment.id) }}">Modifica</a>
+                    <form method="post" action="{{ url_for('delete_appointment', appointment_id=appointment.id) }}">
+                        <button class="danger" type="submit" onclick="return confirm('Eliminare l\'appuntamento?')">Elimina</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7">Nessun appuntamento registrato.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

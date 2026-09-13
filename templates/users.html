@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Operatori</h1>
+
+<section class="panel">
+    <h2>Nuovo operatore</h2>
+    <form method="post" action="{{ url_for('create_user') }}" class="form-grid">
+        <div>
+            <label>Username</label>
+            <input type="text" name="username" required>
+        </div>
+        <div>
+            <label>Nome completo</label>
+            <input type="text" name="fullname" required>
+        </div>
+        <div>
+            <label>Ruolo</label>
+            <select name="role" required>
+                <option value="coordinatore">Coordinatore</option>
+                <option value="vicecoordinatore">Vice coordinatore</option>
+                <option value="psicologa">Psicologa</option>
+                <option value="psichiatra">Psichiatra</option>
+                <option value="infermiere">Infermiere</option>
+                <option value="oss">OSS</option>
+                <option value="educatore">Educatore</option>
+            </select>
+        </div>
+        <div>
+            <label>Password</label>
+            <input type="text" name="password" required>
+        </div>
+        <div class="full-width">
+            <button type="submit">Crea operatore</button>
+        </div>
+    </form>
+</section>
+
+<section class="panel">
+    <h2>Operatori attivi</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Nome completo</th>
+                <th>Ruolo</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.fullname }}</td>
+                <td>{{ ROLE_LABELS.get(user.role, user.role) }}</td>
+                <td>
+                    <form method="post" action="{{ url_for('archive_user', user_id=user.id) }}" style="display:inline;">
+                        <button type="submit" class="secondary-btn">Archivia</button>
+                    </form>
+                    <form method="post" action="{{ url_for('reset_user_password', user_id=user.id) }}" style="display:inline;">
+                        <input type="text" name="new_password" placeholder="Nuova password" required>
+                        <input type="password" name="secondary_password" placeholder="Seconda password" required>
+                        <button type="submit" class="warning-btn">Reset</button>
+                    </form>
+                    <form method="post" action="{{ url_for('delete_user', user_id=user.id) }}" style="display:inline;">
+                        <input type="password" name="secondary_password" placeholder="Seconda password" required>
+                        <button type="submit" class="danger-btn">Elimina</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4">Nessun operatore attivo.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

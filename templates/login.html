@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | {{ app_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="login-page">
+    <div class="login-box">
+        <h1>{{ app_name }}</h1>
+        <h2>Accesso</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-list">
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form method="post" action="{{ url_for('login') }}" class="form-grid">
+            <div class="full-width">
+                <label>Username</label>
+                <input type="text" name="username" required>
+            </div>
+            <div class="full-width">
+                <label>Password</label>
+                <input type="password" name="password" required>
+            </div>
+            <div class="full-width">
+                <button type="submit">Accedi</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
