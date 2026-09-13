@@ -1,4 +1,6 @@
-import csv
+cd "c:\Users\Matteo\Desktop\prova gestionale"
+git remote set-url origin https://github.com/<tuo-utente>/<nome-repo>.gitcd "c:\Users\Matteo\Desktop\prova gestionale"
+git remote set-url origin https://github.com/<tuo-utente>/<nome-repo>.gitimport csv
 import math
 import os
 import re
