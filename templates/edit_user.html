@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <p class="eyebrow">Modifica operatore</p>
+        <h1>{{ user.fullname }}</h1>
+    </div>
+    <div class="actions-row">
+        <a class="secondary-btn" href="{{ url_for('users') }}">Torna elenco</a>
+    </div>
+</div>
+
+<section class="panel">
+    <h2>Dati operatore</h2>
+    <form method="post" class="form-grid">
+        <div>
+            <label>Username</label>
+            <input type="text" name="username" value="{{ user.username }}" required>
+        </div>
+        <div>
+            <label>Nome completo</label>
+            <input type="text" name="fullname" value="{{ user.fullname }}" required>
+        </div>
+        <div>
+            <label>Ruolo</label>
+            <select name="role" required>
+                <option value="coordinatore" {% if user.role == 'coordinatore' %}selected{% endif %}>Coordinatore</option>
+                <option value="vicecoordinatore" {% if user.role == 'vicecoordinatore' %}selected{% endif %}>Vice coordinatore</option>
+                <option value="psicologa" {% if user.role == 'psicologa' %}selected{% endif %}>Psicologa</option>
+                <option value="psichiatra" {% if user.role == 'psichiatra' %}selected{% endif %}>Psichiatra</option>
+                <option value="infermiere" {% if user.role == 'infermiere' %}selected{% endif %}>Infermiere</option>
+                <option value="oss" {% if user.role == 'oss' %}selected{% endif %}>OSS</option>
+                <option value="educatore" {% if user.role == 'educatore' %}selected{% endif %}>Educatore</option>
+            </select>
+        </div>
+        <div class="full-width">
+            <button type="submit" class="primary-btn">Salva modifiche</button>
+        </div>
+    </form>
+</section>
+
+<section class="panel">
+    <h2>Password</h2>
+    <p>Per cambiare la password, utilizza il pulsante "Modifica Password" dall'elenco operatori.</p>
+</section>
+{% endblock %}

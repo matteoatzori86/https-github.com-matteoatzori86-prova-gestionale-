@@ -18,6 +18,161 @@
     --shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
 }
 
+/* Tema Cool (predefinito - blu) */
+body[data-theme="cool"],
+body:not([data-theme]) {
+    --bg: #eef4ff;
+    --panel: #ffffff;
+    --sidebar: #122c4d;
+    --sidebar-soft: #1d3f6e;
+    --primary: #1d4ed8;
+    --primary-soft: #dbeafe;
+    --accent: #14b8a6;
+    --warning: #f59e0b;
+    --danger: #dc2626;
+    --text: #1f2937;
+    --muted: #64748b;
+    --border: #dfe7f5;
+    --shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+/* Tema Warm (colori caldi - arancione, rosso, giallo) */
+body[data-theme="warm"] {
+    --bg: #fff5eb;
+    --panel: #ffffff;
+    --sidebar: #7c2d12;
+    --sidebar-soft: #b45309;
+    --primary: #d97706;
+    --primary-soft: #fed7aa;
+    --accent: #ea580c;
+    --warning: #dc2626;
+    --danger: #991b1b;
+    --text: #2d1810;
+    --muted: #b45309;
+    --border: #fed7aa;
+    --shadow: 0 10px 25px rgba(124, 45, 18, 0.08);
+}
+
+/* Tema Gray (scala di grigi) */
+body[data-theme="gray"] {
+    --bg: #f3f4f6;
+    --panel: #ffffff;
+    --sidebar: #1f2937;
+    --sidebar-soft: #374151;
+    --primary: #4b5563;
+    --primary-soft: #e5e7eb;
+    --accent: #6b7280;
+    --warning: #9ca3af;
+    --danger: #6b7280;
+    --text: #111827;
+    --muted: #9ca3af;
+    --border: #d1d5db;
+    --shadow: 0 10px 25px rgba(31, 41, 55, 0.08);
+}
+
+/* Tema Viola */
+body[data-theme="purple"] {
+    --bg: #f3e8ff;
+    --panel: #ffffff;
+    --sidebar: #581c87;
+    --sidebar-soft: #7c3aed;
+    --primary: #a855f7;
+    --primary-soft: #e9d5ff;
+    --accent: #d946ef;
+    --warning: #f59e0b;
+    --danger: #dc2626;
+    --text: #3f0f5c;
+    --muted: #a855f7;
+    --border: #e9d5ff;
+    --shadow: 0 10px 25px rgba(88, 28, 135, 0.08);
+}
+
+/* Tema Ottanio (azzurro chiaro) */
+body[data-theme="ottanio"] {
+    --bg: #e0f7ff;
+    --panel: #ffffff;
+    --sidebar: #0e5a8a;
+    --sidebar-soft: #0891b2;
+    --primary: #06b6d4;
+    --primary-soft: #cffafe;
+    --accent: #00d9ff;
+    --warning: #f59e0b;
+    --danger: #dc2626;
+    --text: #082f49;
+    --muted: #0891b2;
+    --border: #cffafe;
+    --shadow: 0 10px 25px rgba(14, 90, 138, 0.08);
+}
+
+/* Tema Rosso */
+body[data-theme="red"] {
+    --bg: #fee2e2;
+    --panel: #ffffff;
+    --sidebar: #7f1d1d;
+    --sidebar-soft: #991b1b;
+    --primary: #dc2626;
+    --primary-soft: #fecaca;
+    --accent: #ef4444;
+    --warning: #f59e0b;
+    --danger: #991b1b;
+    --text: #450a0a;
+    --muted: #dc2626;
+    --border: #fecaca;
+    --shadow: 0 10px 25px rgba(127, 29, 29, 0.08);
+}
+
+/* Tema Giallo */
+body[data-theme="yellow"] {
+    --bg: #fef9e7;
+    --panel: #ffffff;
+    --sidebar: #854d0e;
+    --sidebar-soft: #b45309;
+    --primary: #eab308;
+    --primary-soft: #fef08a;
+    --accent: #facc15;
+    --warning: #f59e0b;
+    --danger: #dc2626;
+    --text: #3f2817;
+    --muted: #b45309;
+    --border: #fef08a;
+    --shadow: 0 10px 25px rgba(133, 77, 14, 0.08);
+}
+
+/* Tema Verde Bosco */
+body[data-theme="forest"] {
+    --bg: #e0f2e9;
+    --panel: #ffffff;
+    --sidebar: #14532d;
+    --sidebar-soft: #166534;
+    --primary: #15803d;
+    --primary-soft: #bbf7d0;
+    --accent: #22c55e;
+    --warning: #f59e0b;
+    --danger: #dc2626;
+    --text: #05280c;
+    --muted: #15803d;
+    --border: #bbf7d0;
+    --shadow: 0 10px 25px rgba(20, 83, 45, 0.08);
+}
+
+/* Tema Verde Prato */
+body[data-theme="meadow"] {
+    --bg: #f0fdf4;
+    --panel: #ffffff;
+    --sidebar: #1b4332;
+    --sidebar-soft: #2d6a4f;
+    --primary: #4ade80;
+    --primary-soft: #dcfce7;
+    --accent: #86efac;
+    --warning: #f59e0b;
+    --danger: #dc2626;
+    --text: #172417;
+    --muted: #4ade80;
+    --border: #dcfce7;
+    --shadow: 0 10px 25px rgba(27, 67, 50, 0.08);
+}
+
+
 body {
     margin: 0;
     font-family: "Segoe UI", Arial, sans-serif;
@@ -232,6 +387,88 @@ body {
 .sidebar a:hover {
     background: rgba(255,255,255,0.12);
 }
+
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    position: relative;
+}
+
+.himawari-brand {
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
+    letter-spacing: 0.02em;
+    margin-bottom: 12px;
+}
+
+.theme-toggle-btn {
+    width: 100%;
+    padding: 8px 10px;
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.9);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.3);
+}
+
+.theme-menu {
+    position: absolute;
+    bottom: 70px;
+    left: 18px;
+    width: 220px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+}
+
+.theme-menu.show {
+    display: flex;
+}
+
+.theme-option {
+    padding: 10px 12px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: background 0.2s ease;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.theme-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.theme-name {
+    flex: 1;
+}
+
+.theme-option:last-child {
+    border-bottom: none;
+}
+
+.theme-option:hover {
+    background: #f9f9f9;
+}
+
 
 .main-content {
     flex: 1;
@@ -459,21 +696,38 @@ button.secondary-btn {
 }
 
 .login-box {
-    width: min(420px, 90vw);
+    width: min(500px, 90vw);
     background: white;
     border-radius: 20px;
     box-shadow: 0 18px 38px rgba(15, 23, 42, 0.12);
-    padding: 30px 28px;
+    padding: 40px 36px;
 }
 
-.login-box h1 {
-    margin: 0 0 6px;
+.login-header {
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.login-header h1 {
+    margin: 0;
     text-align: center;
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--warning);
+}
+
+.sunflower {
+    margin-left: 8px;
+    font-size: 1.8rem;
 }
 
 .login-box h2 {
-    margin-bottom: 18px;
+    margin: 0 0 24px;
     text-align: center;
+    font-size: 1.2rem;
+    color: var(--text);
+    font-weight: 700;
 }
 
 .full-width {
@@ -763,4 +1017,58 @@ tr:hover td {
 @keyframes toast-out {
     from { opacity: 1; transform: translateY(0) scale(1); }
     to   { opacity: 0; transform: translateY(-8px) scale(0.98); }
+}
+
+/* Alert styles for expiring therapies and low stock */
+.alert-panel {
+    border-left: 4px solid var(--warning);
+    background: #fffbeb;
+}
+
+.alert-row {
+    background-color: #fffbeb;
+}
+
+.alert-row.alert-danger {
+    background-color: #fee2e2;
+}
+
+.alert-row.alert-warning {
+    background-color: #fef3c7;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge-expiry {
+    background-color: var(--danger);
+    color: white;
+}
+
+.badge-low-stock {
+    background-color: var(--warning);
+    color: white;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 0.875rem;
+    border-radius: 6px;
+    background-color: var(--primary);
+    color: white;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.btn-small:hover {
+    background-color: #1d4ed8;
+    opacity: 0.9;
 }

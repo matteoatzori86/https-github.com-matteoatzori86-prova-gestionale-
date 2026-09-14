@@ -119,13 +119,17 @@
                     </form>
                     {% endif %}
                     <a class="link-btn" href="{{ url_for('patient_detail', patient_id=patient.id) }}">Dettaglio</a>
+                    {% if user_has_permission('edit_patients') %}
                     <a class="link-btn" href="{{ url_for('edit_patient', patient_id=patient.id) }}">Modifica</a>
+                    {% endif %}
+                    {% if user_has_permission('delete_patients') %}
                     <form method="post" action="{{ url_for('archive_patient', patient_id=patient.id) }}" style="display:inline;">
                         <button class="secondary-btn" type="submit" onclick="return confirm('Archiviare l\'utente?')">Archivia</button>
                     </form>
                     <form method="post" action="{{ url_for('delete_patient', patient_id=patient.id) }}">
                         <button class="danger" type="submit" onclick="return confirm('Eliminare l\'utente?')">Elimina</button>
                     </form>
+                    {% endif %}
                 </td>
             </tr>
             {% else %}

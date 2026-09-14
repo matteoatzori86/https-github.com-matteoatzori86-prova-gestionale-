@@ -3,6 +3,44 @@
 {% block content %}
 <h1>Promemoria e notifiche</h1>
 
+{% if alerts %}
+<section class="panel alert-panel">
+    <h2>Avvisi attivi</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Tipo</th>
+                <th>Paziente</th>
+                <th>Farmaco</th>
+                <th>Messaggio</th>
+                <th>Azione</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alert in alerts %}
+            <tr class="alert-row alert-{{ alert.status }}">
+                <td>
+                    {% if alert.type == 'expiry' %}
+                        <span class="badge badge-expiry">Scadenza</span>
+                    {% elif alert.type == 'low_stock' %}
+                        <span class="badge badge-low-stock">Carenza</span>
+                    {% endif %}
+                </td>
+                <td><a href="{{ url_for('patient_detail', patient_id=alert.patient_id) }}">{{ alert.patient_name }}</a></td>
+                <td>{{ alert.drug_name }}</td>
+                <td>{{ alert.message }}</td>
+                <td><a href="{{ url_for('patient_detail', patient_id=alert.patient_id) }}" class="btn-small">Visualizza</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% else %}
+<section class="panel">
+    <p>Nessun avviso attivo.</p>
+</section>
+{% endif %}
+
 <section class="panel">
     <h2>Log promemoria</h2>
     <table>

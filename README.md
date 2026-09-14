@@ -23,13 +23,30 @@ python app.py
 Poi aprire nel browser:
 - http://127.0.0.1:5000
 
-## Avvio su PC aziendale senza installare Python
-Se il computer non consente installazioni, usa un runtime Python portabile:
-1. Scarica una versione portable di Python 3.12 da python.org.
-2. Estrai la cartella in una delle posizioni:
-   - nella cartella del progetto: `python\`
-   - o in `portable_python\`
-   - o direttamente sul USB: `X:\python\`
+## Avvio su chiavetta USB senza installare Python
+Per mostrare il progetto a un cliente solo da chiavetta USB, copia il contenuto completo della cartella del progetto e il runtime Python portabile nella stessa struttura:
+
+```text
+USB:\prova-gestionale\
+    app.py
+    requirements.txt
+    templates\
+    static\
+    data\
+    scripts\
+    python\           <-- runtime Python portabile o la cartella portable_python\
+    start_app.bat
+```
+
+Il file `start_app.bat` cerca automaticamente una delle seguenti cartelle:
+- `python\python.exe`
+- `portable_python\python.exe`
+
+Se il runtime non è presente, il file visualizza un messaggio chiaro e si ferma. La `python\` o `portable_python\` deve essere copiata insieme al progetto. Non usare un `python.exe` assoluto come in una installazione locale.
+
+Per lanciare:
+1. Inserisci la chiavetta.
+2. Apri la cartella `prova-gestionale`.
 3. Fai doppio click su `start_app.bat`.
 
 Il file di avvio cercherà automaticamente i runtime portatili.

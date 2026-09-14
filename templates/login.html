@@ -8,8 +8,10 @@
 </head>
 <body class="login-page">
     <div class="login-box">
-        <h1>{{ app_name }}</h1>
-        <h2>Accesso</h2>
+        <div class="login-header">
+            <h1>Benvenuto sul portale Himawari <span class="sunflower">🌻</span></h1>
+        </div>
+        <h2>strutture socio-sanitarie</h2>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}

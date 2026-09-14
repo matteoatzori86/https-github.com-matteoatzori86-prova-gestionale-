@@ -6,7 +6,7 @@
     <title>{{ app_name }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body data-theme="{{ current_user.theme or 'cool' if current_user else 'cool' }}">
     <div class="app-shell">
         <aside class="sidebar">
             <div class="brand">{{ app_name }}</div>
@@ -31,6 +31,22 @@
                 {% endif %}
                 <a href="{{ url_for('logout') }}">Logout</a>
             </nav>
+            <div class="sidebar-footer">
+                <div class="himawari-brand">Himawari 🌻</div>
+                <button class="theme-toggle-btn" onclick="document.getElementById('theme-menu').classList.toggle('show')">⚙ Cambia tema</button>
+                <div id="theme-menu" class="theme-menu">
+                    <a href="{{ url_for('change_theme', theme='cool') }}" class="theme-option" data-theme="cool"><span class="theme-icon">❄️</span><span class="theme-name">Classico</span></a>
+                    <a href="{{ url_for('change_theme', theme='warm') }}" class="theme-option" data-theme="warm"><span class="theme-icon">🎃</span><span class="theme-name">Arancione</span></a>
+                    <a href="{{ url_for('change_theme', theme='red') }}" class="theme-option" data-theme="red"><span class="theme-icon">🔥</span><span class="theme-name">Rosso</span></a>
+                    <a href="{{ url_for('change_theme', theme='yellow') }}" class="theme-option" data-theme="yellow"><span class="theme-icon">⭐</span><span class="theme-name">Giallo</span></a>
+                    <a href="{{ url_for('change_theme', theme='gray') }}" class="theme-option" data-theme="gray"><span class="theme-icon">⚫</span><span class="theme-name">Grigio</span></a>
+                    <a href="{{ url_for('change_theme', theme='purple') }}" class="theme-option" data-theme="purple"><span class="theme-icon">💜</span><span class="theme-name">Viola</span></a>
+                    <a href="{{ url_for('change_theme', theme='forest') }}" class="theme-option" data-theme="forest"><span class="theme-icon">🌲</span><span class="theme-name">Verde Bosco</span></a>
+                    <a href="{{ url_for('change_theme', theme='meadow') }}" class="theme-option" data-theme="meadow"><span class="theme-icon">🌿</span><span class="theme-name">Verde Prato</span></a>
+                    <a href="{{ url_for('change_theme', theme='ottanio') }}" class="theme-option" data-theme="ottanio"><span class="theme-icon">🌊</span><span class="theme-name">Ottanio</span></a>
+
+                </div>
+            </div>
             {% endif %}
         </aside>
 
@@ -54,6 +70,15 @@
 
     <script>
     (function(){
+        // Close theme menu when clicking outside
+        document.addEventListener('click', function(event) {
+            var themeMenu = document.getElementById('theme-menu');
+            var themeBtn = document.querySelector('.theme-toggle-btn');
+            if(themeMenu && !themeMenu.contains(event.target) && !themeBtn.contains(event.target)) {
+                themeMenu.classList.remove('show');
+            }
+        });
+
         // Move server-rendered flash messages into floating toasts
         try{
             var container = document.getElementById('toast-container');

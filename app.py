@@ -1,6 +1,4 @@
-cd "c:\Users\Matteo\Desktop\prova gestionale"
-git remote set-url origin https://github.com/<tuo-utente>/<nome-repo>.gitcd "c:\Users\Matteo\Desktop\prova gestionale"
-git remote set-url origin https://github.com/<tuo-utente>/<nome-repo>.gitimport csv
+import csv
 import math
 import os
 import re
@@ -14,13 +12,23 @@ from uuid import uuid4
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session, abort, Response, send_from_directory
 
+try:
+    from win10toast import ToastNotifier
+    TOAST_AVAILABLE = True
+except ImportError:
+    TOAST_AVAILABLE = False
+
 app = Flask(__name__)
 app.secret_key = "gestionale-demo-key"
-SECONDARY_DELETE_PASSWORD = os.environ.get("SECONDARY_DELETE_PASSWORD", "coordinatore-2026")
+SECONDARY_DELETE_PASSWORD = os.environ.get("SECONDARY_DELETE_PASSWORD", "ctr25072023")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 DB_PATH = os.path.join(DATA_DIR, "gestionale.db")
+
+# Variabile globale per tracciare la data dell'ultima notifica
+last_notification_date = None
+notification_thread_running = False
 
 
 def get_db():
@@ -34,6 +42,8 @@ def ensure_user_columns():
     columns = [row[1] for row in conn.execute("PRAGMA table_info(users)").fetchall()]
     if "is_archived" not in columns:
         conn.execute("ALTER TABLE users ADD COLUMN is_archived INTEGER NOT NULL DEFAULT 0")
+    if "theme" not in columns:
+        conn.execute("ALTER TABLE users ADD COLUMN theme TEXT NOT NULL DEFAULT 'cool'")
     conn.commit()
     conn.close()
 
@@ -54,6 +64,71 @@ def ensure_audit_tables():
     )
     conn.commit()
     conn.close()
+
+
+def send_windows_notifications():
+    """Invia notifiche di Windows per farmaci in scadenza e carenza"""
+    global last_notification_date
+
+    if not TOAST_AVAILABLE:
+        return
+
+    try:
+        toaster = ToastNotifier()
+        
+        # Controlla ogni 24 ore, azzerato alle 9:00 del mattino
+        while True:
+            now = datetime.now()
+            
+            # Calcola il prossimo trigger a 9:00
+            if now.hour >= 9:
+                # Se è già passato le 9:00 oggi, il prossimo trigger è domani a 9:00
+                next_check = now.replace(hour=9, minute=0, second=0, microsecond=0) + timedelta(days=1)
+            else:
+                # Se non è ancora passato le 9:00, il prossimo trigger è oggi a 9:00
+                next_check = now.replace(hour=9, minute=0, second=0, microsecond=0)
+            
+            # Calcola i secondi da aspettare
+            wait_seconds = (next_check - now).total_seconds()
+            
+            # Se wait_seconds è negativo o zero, attendi comunque almeno 60 secondi
+            if wait_seconds <= 0:
+                wait_seconds = 60
+            
+            time.sleep(wait_seconds)
+            
+            # Raccogli notifiche di scadenza
+            expiring = get_expiring_therapies()
+            low_stock = get_low_stock_therapies()
+            
+            if expiring:
+                title = "Avviso Farmaci Scadenza"
+                message_parts = []
+                for therapy in expiring[:5]:  # Limita a 5 notifiche
+                    message_parts.append(f"• {therapy['drug_name']} ({therapy['patient_name']}): {therapy['message']}")
+                
+                message = "\n".join(message_parts)
+                if len(expiring) > 5:
+                    message += f"\n... e {len(expiring) - 5} altri"
+                
+                toaster.show_toast(title, message, duration=10, threaded=True)
+                time.sleep(2)
+            
+            if low_stock:
+                title = "Avviso Carenza Farmaci"
+                message_parts = []
+                for therapy in low_stock[:5]:  # Limita a 5 notifiche
+                    message_parts.append(f"• {therapy['drug_name']} ({therapy['patient_name']}): {therapy['message']}")
+                
+                message = "\n".join(message_parts)
+                if len(low_stock) > 5:
+                    message += f"\n... e {len(low_stock) - 5} altri"
+                
+                toaster.show_toast(title, message, duration=10, threaded=True)
+                time.sleep(2)
+
+    except Exception as e:
+        print(f"Errore notifiche Windows: {e}")
 
 
 def record_activity(action, details="", user_id=None):
@@ -497,6 +572,7 @@ ROLE_PERMISSIONS = {
         "view_patients": True,
         "view_appointments": True,
         "view_users": True,
+        "create_users": True,
         "manage_users": True,
         "edit_patients": True,
         "delete_patients": True,
@@ -510,6 +586,7 @@ ROLE_PERMISSIONS = {
         "view_patients": True,
         "view_appointments": True,
         "view_users": True,
+        "create_users": True,
         "manage_users": True,
         "edit_patients": True,
         "delete_patients": True,
@@ -523,6 +600,7 @@ ROLE_PERMISSIONS = {
         "view_patients": True,
         "view_appointments": True,
         "view_users": True,
+        "create_users": True,
         "manage_users": True,
         "edit_patients": True,
         "delete_patients": True,
@@ -536,6 +614,7 @@ ROLE_PERMISSIONS = {
         "view_patients": True,
         "view_appointments": True,
         "view_users": False,
+        "create_users": True,
         "manage_users": False,
         "edit_patients": False,
         "delete_patients": False,
@@ -549,6 +628,7 @@ ROLE_PERMISSIONS = {
         "view_patients": True,
         "view_appointments": True,
         "view_users": False,
+        "create_users": True,
         "manage_users": False,
         "edit_patients": False,
         "delete_patients": False,
@@ -562,6 +642,7 @@ ROLE_PERMISSIONS = {
         "view_patients": True,
         "view_appointments": True,
         "view_users": False,
+        "create_users": True,
         "manage_users": False,
         "edit_patients": False,
         "delete_patients": False,
@@ -575,6 +656,7 @@ ROLE_PERMISSIONS = {
         "view_patients": True,
         "view_appointments": True,
         "view_users": False,
+        "create_users": True,
         "manage_users": False,
         "edit_patients": False,
         "delete_patients": False,
@@ -588,6 +670,7 @@ ROLE_PERMISSIONS = {
         "view_patients": False,
         "view_appointments": True,
         "view_users": False,
+        "create_users": True,
         "manage_users": False,
         "edit_patients": False,
         "delete_patients": False,
@@ -849,7 +932,7 @@ def reminder_worker():
 def inject_globals():
     return {
         "current_year": datetime.now().year,
-        "app_name": "Gestionale Socio-Sanitario",
+        "app_name": "strutture socio-sanitarie",
         "current_user": get_current_user(),
         "ROLE_LABELS": ROLE_LABELS,
         "user_has_permission": user_has_permission,
@@ -908,13 +991,33 @@ def logout():
     return redirect(url_for("login"))
 
 
+@app.route("/change-theme/<theme>")
+def change_theme(theme):
+    if not get_current_user():
+        return redirect(url_for("login"))
+    
+    if theme not in ["cool", "warm", "gray", "purple", "ottanio", "red", "yellow", "forest", "meadow"]:
+        flash("Tema non valido.", "danger")
+        return redirect(url_for("dashboard"))
+    
+    user = get_current_user()
+    conn = get_db()
+    conn.execute("UPDATE users SET theme = ? WHERE id = ?", (theme, user["id"]))
+    conn.commit()
+    conn.close()
+    
+    flash(f"Tema cambiato con successo.", "success")
+    return redirect(request.referrer or url_for("dashboard"))
+
+
+
 @app.route("/")
 @require_login
 def dashboard():
     conn = get_db()
     patient_count = conn.execute("SELECT COUNT(*) AS total FROM patients").fetchone()["total"]
     appointment_count = conn.execute("SELECT COUNT(*) AS total FROM appointments").fetchone()["total"]
-    users_count = conn.execute("SELECT COUNT(*) AS total FROM users WHERE is_archived = 0").fetchone()["total"]
+    users_count = conn.execute("SELECT COUNT(*) AS total FROM users WHERE is_archived = 0 AND role != 'admin'").fetchone()["total"]
     documents_count = conn.execute("SELECT COUNT(*) AS total FROM patient_documents").fetchone()["total"]
     upcoming_count = conn.execute(
         "SELECT COUNT(*) AS total FROM appointments WHERE appointment_date >= date('now')"
@@ -1566,6 +1669,142 @@ def delete_appointment(appointment_id):
     return redirect(url_for("appointments"))
 
 
+def get_expiring_therapies():
+    """Restituisce terapie in scadenza: warning (prossimo mese), danger (mese corrente/passato)"""
+    conn = get_db()
+    therapies = conn.execute(
+        """
+        SELECT t.id, t.drug_name, t.dosage, t.expiry_date, t.units_per_box, t.stock_boxes, t.pack_type,
+               t.schedule, p.first_name || ' ' || p.last_name AS patient_name, p.id AS patient_id
+        FROM therapies t
+        JOIN patients p ON t.patient_id = p.id
+        WHERE t.expiry_date IS NOT NULL AND t.expiry_date != ''
+        ORDER BY t.expiry_date ASC
+        """
+    ).fetchall()
+    conn.close()
+
+    result = []
+    today = datetime.now().date()
+    current_month = today.month
+    current_year = today.year
+
+    for therapy in therapies:
+        try:
+            expiry_date = datetime.strptime(therapy["expiry_date"], "%Y-%m-%d").date()
+            expiry_month = expiry_date.month
+            expiry_year = expiry_date.year
+
+            if expiry_date < today:
+                # Scaduta
+                status = "danger"
+                message = "SCADUTA"
+            elif expiry_year == current_year and expiry_month == current_month:
+                # Scade nel mese corrente
+                status = "danger"
+                message = f"Scade il {expiry_date.strftime('%d/%m/%Y')}"
+            elif expiry_year == current_year and expiry_month == current_month + 1:
+                # Scade il mese prossimo
+                status = "warning"
+                message = f"Scade il {expiry_date.strftime('%d/%m/%Y')}"
+            else:
+                continue
+
+            result.append({
+                "id": therapy["id"],
+                "drug_name": therapy["drug_name"],
+                "patient_name": therapy["patient_name"],
+                "patient_id": therapy["patient_id"],
+                "expiry_date": therapy["expiry_date"],
+                "status": status,
+                "message": message,
+                "type": "expiry"
+            })
+        except Exception:
+            pass
+
+    return result
+
+
+def get_low_stock_therapies():
+    """Restituisce terapie con giacenza che durerà meno di 11 giorni"""
+    conn = get_db()
+    therapies = conn.execute(
+        """
+        SELECT t.id, t.drug_name, t.dosage, t.schedule, t.units_per_box, t.stock_boxes, t.pack_type,
+               p.first_name || ' ' || p.last_name AS patient_name, p.id AS patient_id
+        FROM therapies t
+        JOIN patients p ON t.patient_id = p.id
+        WHERE t.units_per_box > 0 AND t.stock_boxes > 0
+        """
+    ).fetchall()
+    conn.close()
+
+    result = []
+    for therapy in therapies:
+        try:
+            units_per_box = int(therapy["units_per_box"] or 0)
+            stock_boxes = int(therapy["stock_boxes"] or 0)
+
+            if units_per_box <= 0 or stock_boxes <= 0:
+                continue
+
+            total_units = units_per_box * stock_boxes
+            dosage = (therapy["dosage"] or "").strip().lower()
+            schedule = (therapy["schedule"] or "").strip()
+
+            # Calcola la dose per giorno
+            dose_match = re.search(r"(\d+(?:[.,]\d+)?)\s*(cp|capsule|compresse|gocce|fiale|bustine)\b", dosage)
+            amount_per_dose = 1
+            if dose_match:
+                try:
+                    amount_per_dose = int(float(dose_match.group(1)))
+                except Exception:
+                    amount_per_dose = 1
+
+            schedule_times = re.findall(r"\b(?:[01]?\d|2[0-3]):[0-5]\d\b", schedule)
+            schedule_count = len(schedule_times)
+
+            text = dosage
+            if "settimana" in text or "a settimana" in text or "alla settimana" in text:
+                # Per le settimane: calcolo in giorni come settimane * 7
+                weekly_match = re.search(r"(\d+)\s*volta\s*a\s*settimana|una?\s*volta\s*a\s*settimana", text)
+                weekly_count = int(weekly_match.group(1)) if weekly_match and weekly_match.group(1) else 1
+                units_per_week = weekly_count * amount_per_dose
+                duration_days = (total_units // units_per_week) * 7
+            elif "mese" in text or "mensile" in text or "al mese" in text or "a mese" in text:
+                # Per i mesi: calcolo in giorni come mesi * 30
+                monthly_match = re.search(r"(\d+)\s*volta\s*al\s*mese|una?\s*volta\s*al\s*mese", text)
+                monthly_count = int(monthly_match.group(1)) if monthly_match and monthly_match.group(1) else 1
+                units_per_month = monthly_count * amount_per_dose
+                duration_days = (total_units // units_per_month) * 30
+            else:
+                # Per i giorni: calcolo standard
+                daily_count = schedule_count if schedule_count > 0 else 1
+                daily_match = re.search(r"(\d+)\s*volte\s*al\s*giorno", text)
+                if daily_match:
+                    daily_count = int(daily_match.group(1)) if schedule_count == 0 else schedule_count
+                units_per_day = daily_count * amount_per_dose
+                duration_days = max(0, total_units // units_per_day)
+
+            # Se la durata è meno di 11 giorni, notifica
+            if 0 < duration_days < 11:
+                result.append({
+                    "id": therapy["id"],
+                    "drug_name": therapy["drug_name"],
+                    "patient_name": therapy["patient_name"],
+                    "patient_id": therapy["patient_id"],
+                    "duration_days": duration_days,
+                    "status": "warning",
+                    "message": f"Giacenza esaurimento in {duration_days} giorni",
+                    "type": "low_stock"
+                })
+        except Exception:
+            pass
+
+    return result
+
+
 @app.route("/notifications")
 @require_login
 def notifications():
@@ -1584,7 +1823,15 @@ def notifications():
         """
     ).fetchall()
     conn.close()
-    return render_template("notifications.html", reminders=reminders)
+
+    # Aggiungi notifiche di scadenza e carenza giacenza
+    expiring_therapies = get_expiring_therapies()
+    low_stock_therapies = get_low_stock_therapies()
+
+    # Combina tutti gli avvisi
+    all_alerts = expiring_therapies + low_stock_therapies
+
+    return render_template("notifications.html", reminders=reminders, alerts=all_alerts)
 
 
 @app.route("/calendar")
@@ -1630,11 +1877,11 @@ def calendar():
 @app.route("/users")
 @require_login
 def users():
-    if not user_has_permission("manage_users"):
+    if not user_has_permission("create_users"):
         abort(403)
     conn = get_db()
-    users = conn.execute("SELECT * FROM users WHERE is_archived = 0 ORDER BY role, fullname").fetchall()
-    archived_users = conn.execute("SELECT * FROM users WHERE is_archived = 1 ORDER BY role, fullname").fetchall()
+    users = conn.execute("SELECT * FROM users WHERE is_archived = 0 AND role != 'admin' ORDER BY role, fullname").fetchall()
+    archived_users = conn.execute("SELECT * FROM users WHERE is_archived = 1 AND role != 'admin' ORDER BY role, fullname").fetchall()
     conn.close()
     return render_template("users.html", users=users, archived_users=archived_users)
 
@@ -1688,7 +1935,7 @@ def audit():
     date_to = request.args.get("date_to", "").strip()
 
     conn = get_db()
-    users = conn.execute("SELECT id, username, fullname, role FROM users WHERE is_archived = 0 ORDER BY fullname").fetchall()
+    users = conn.execute("SELECT id, username, fullname, role FROM users WHERE is_archived = 0 AND role != 'admin' ORDER BY fullname").fetchall()
     actions = [row[0] for row in conn.execute("SELECT DISTINCT action FROM access_log ORDER BY action").fetchall()]
 
     query = """
@@ -1771,7 +2018,7 @@ def export_audit_csv():
 @app.route("/users/create", methods=["POST"])
 @require_login
 def create_user():
-    if not user_has_permission("manage_users"):
+    if not user_has_permission("create_users"):
         abort(403)
     username = request.form.get("username", "").strip()
     fullname = request.form.get("fullname", "").strip()
@@ -1798,6 +2045,55 @@ def create_user():
     record_activity("create_user", f"Creato operatore {fullname} ({role})")
     flash("Operatore creato correttamente.", "success")
     return redirect(url_for("users"))
+
+
+@app.route("/users/<int:user_id>/edit", methods=["GET", "POST"])
+@require_login
+def edit_user(user_id):
+    if not user_has_permission("manage_users"):
+        abort(403)
+    
+    conn = get_db()
+    user = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    
+    if user is None:
+        conn.close()
+        flash("Operatore non trovato.", "danger")
+        return redirect(url_for("users"))
+    
+    if request.method == "POST":
+        new_username = request.form.get("username", "").strip()
+        new_fullname = request.form.get("fullname", "").strip()
+        new_role = request.form.get("role", "").strip()
+        
+        if not new_username or not new_fullname or not new_role:
+            flash("Tutti i campi sono obbligatori.", "danger")
+            conn.close()
+            return redirect(url_for("edit_user", user_id=user_id))
+        
+        # Controlla se il nuovo username è già in uso da un altro utente
+        existing_user = conn.execute(
+            "SELECT id FROM users WHERE username = ? AND id != ?", 
+            (new_username, user_id)
+        ).fetchone()
+        if existing_user is not None:
+            conn.close()
+            flash("Username già utilizzato da un altro operatore.", "danger")
+            return redirect(url_for("edit_user", user_id=user_id))
+        
+        # Aggiorna i dati
+        conn.execute(
+            "UPDATE users SET username = ?, fullname = ?, role = ? WHERE id = ?",
+            (new_username, new_fullname, new_role, user_id)
+        )
+        conn.commit()
+        conn.close()
+        record_activity("edit_user", f"Modificato operatore id {user_id}")
+        flash("Operatore modificato correttamente.", "success")
+        return redirect(url_for("users"))
+    
+    conn.close()
+    return render_template("edit_user.html", user=dict(user))
 
 
 @app.route("/users/<int:user_id>/archive", methods=["POST"])
@@ -1904,4 +2200,10 @@ if __name__ == "__main__":
     init_db()
     reminder_thread = threading.Thread(target=reminder_worker, daemon=True)
     reminder_thread.start()
+    
+    # Avvia il thread per le notifiche di Windows (solo su Windows)
+    if TOAST_AVAILABLE:
+        notification_thread = threading.Thread(target=send_windows_notifications, daemon=True)
+        notification_thread.start()
+    
     app.run(debug=True, host="127.0.0.1", port=5000)

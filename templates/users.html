@@ -3,6 +3,7 @@
 {% block content %}
 <h1>Operatori</h1>
 
+{% if user_has_permission('create_users') %}
 <section class="panel">
     <h2>Nuovo operatore</h2>
     <form method="post" action="{{ url_for('create_user') }}" class="form-grid">
@@ -35,6 +36,7 @@
         </div>
     </form>
 </section>
+{% endif %}
 
 <section class="panel">
     <h2>Operatori attivi</h2>
@@ -54,18 +56,26 @@
                 <td>{{ user.fullname }}</td>
                 <td>{{ ROLE_LABELS.get(user.role, user.role) }}</td>
                 <td>
-                    <form method="post" action="{{ url_for('archive_user', user_id=user.id) }}" style="display:inline;">
-                        <button type="submit" class="secondary-btn">Archivia</button>
-                    </form>
-                    <form method="post" action="{{ url_for('reset_user_password', user_id=user.id) }}" style="display:inline;">
+                    {% if user_has_permission('manage_users') %}
+                    <div class="actions-group">
+                        <a href="{{ url_for('edit_user', user_id=user.id) }}" class="secondary-btn small">Modifica</a>
+                        <button type="button" class="warning-btn small" onclick="toggleForm('resetForm-{{ user.id }}')">Modifica Password</button>
+                        <button type="button" class="danger-btn small" onclick="toggleForm('deleteForm-{{ user.id }}')">Elimina</button>
+                    </div>
+                    <form id="resetForm-{{ user.id }}" method="post" action="{{ url_for('reset_user_password', user_id=user.id) }}" style="display:none; margin-top: 10px;">
                         <input type="text" name="new_password" placeholder="Nuova password" required>
-                        <input type="password" name="secondary_password" placeholder="Seconda password" required>
-                        <button type="submit" class="warning-btn">Reset</button>
+                        <input type="password" name="secondary_password" placeholder="Password di conferma" required>
+                        <button type="submit" class="primary-btn small">Conferma</button>
+                        <button type="button" class="secondary-btn small" onclick="toggleForm('resetForm-{{ user.id }}')">Annulla</button>
                     </form>
-                    <form method="post" action="{{ url_for('delete_user', user_id=user.id) }}" style="display:inline;">
-                        <input type="password" name="secondary_password" placeholder="Seconda password" required>
-                        <button type="submit" class="danger-btn">Elimina</button>
+                    <form id="deleteForm-{{ user.id }}" method="post" action="{{ url_for('delete_user', user_id=user.id) }}" style="display:none; margin-top: 10px;">
+                        <input type="password" name="secondary_password" placeholder="Password di conferma" required>
+                        <button type="submit" class="danger-btn small" onclick="return confirm('Sei sicuro di voler eliminare questo operatore?')">Elimina definitivamente</button>
+                        <button type="button" class="secondary-btn small" onclick="toggleForm('deleteForm-{{ user.id }}')">Annulla</button>
                     </form>
+                    {% else %}
+                    <span style="color: var(--muted); font-size: 0.85rem;">Nessuna azione disponibile</span>
+                    {% endif %}
                 </td>
             </tr>
             {% else %}
@@ -76,4 +86,25 @@
         </tbody>
     </table>
 </section>
+
+<style>
+.actions-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+</style>
+
+<script>
+function toggleForm(formId) {
+    var form = document.getElementById(formId);
+    if (form) {
+        if (form.style.display === 'none') {
+            form.style.display = 'block';
+        } else {
+            form.style.display = 'none';
+        }
+    }
+}
+</script>
 {% endblock %}
